@@ -1,0 +1,7 @@
+flask
+python-dotenv
+azure-cognitiveservices-vision-computervision==0.7.0
+msrest
+requests
+pillow
+matplotlib

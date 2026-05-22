@@ -1,0 +1,41 @@
+name: Deploy AI App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to VM
+
+        uses: appleboy/ssh-action@v1.0.3
+
+        with:
+
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          password: ${{ secrets.VM_PASSWORD }}
+
+          script: |
+
+            cd AI-LAB/15-computer-vision/Python/image-analysis
+
+            git pull
+
+            docker stop $(docker ps -q) || true
+
+            docker rm $(docker ps -aq) || true
+
+            docker build -t ai-vision-app .
+
+            docker run -d -p 5000:5000 ai-vision-app
