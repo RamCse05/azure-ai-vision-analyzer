@@ -6,7 +6,6 @@ on:
       - main
 
 jobs:
-
   deploy:
 
     runs-on: ubuntu-latest
@@ -17,18 +16,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to VM
-
         uses: appleboy/ssh-action@v1.0.3
 
         with:
-
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           password: ${{ secrets.VM_PASSWORD }}
 
           script: |
 
-            cd AI-LAB/15-computer-vision/Python/image-analysis
+            cd /home/ram/AI-LAB
 
             git pull
 
@@ -38,4 +35,7 @@ jobs:
 
             docker build -t ai-vision-app .
 
-            docker run -d -p 5000:5000 ai-vision-app
+            docker run -d \
+            -p 80:5000 \
+            --env-file .env \
+            ai-vision-app
