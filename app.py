@@ -69,8 +69,13 @@ def analyze_image(image_path):
 
     results = {
         "caption": "",
+        "confidence": 0,
         "tags": [],
+        "categories": [],
         "objects": [],
+        "adult": False,
+        "racy": False,
+        "gore": False,
         "image": ""
     }
 
@@ -79,7 +84,9 @@ def analyze_image(image_path):
         features = [
             VisualFeatureTypes.description,
             VisualFeatureTypes.tags,
-            VisualFeatureTypes.objects
+            VisualFeatureTypes.objects,
+            VisualFeatureTypes.categories,
+            VisualFeatureTypes.adult
         ]
 
         analysis = cv_client.analyze_image_in_stream(
@@ -88,27 +95,75 @@ def analyze_image(image_path):
         )
 
     # Caption
+
     if analysis.description.captions:
 
-        results["caption"] = (
-            analysis.description.captions[0].text
+        caption = analysis.description.captions[0]
+
+        results["caption"] = caption.text
+
+        results["confidence"] = round(
+            caption.confidence * 100,
+            2
         )
 
     # Tags
+
     if analysis.tags:
 
         for tag in analysis.tags:
 
-            results["tags"].append(tag.name)
+            results["tags"].append({
+                "name": tag.name,
+                "confidence": round(
+                    tag.confidence * 100,
+                    2
+                )
+            })
+
+    # Categories
+
+    if analysis.categories:
+
+        for category in analysis.categories:
+
+            results["categories"].append({
+                "name": category.name,
+                "confidence": round(
+                    category.score * 100,
+                    2
+                )
+            })
 
     # Objects
+
     if analysis.objects:
 
-        for detected_object in analysis.objects:
+        for obj in analysis.objects:
 
-            results["objects"].append(
-                detected_object.object_property
-            )
+            results["objects"].append({
+                "name": obj.object_property,
+                "confidence": round(
+                    obj.confidence * 100,
+                    2
+                )
+            })
+
+    # Adult Content
+
+    if analysis.adult:
+
+        results["adult"] = (
+            analysis.adult.is_adult_content
+        )
+
+        results["racy"] = (
+            analysis.adult.is_racy_content
+        )
+
+        results["gore"] = (
+            analysis.adult.is_gory_content
+        )
 
     return results
 
@@ -157,4 +212,7 @@ def index():
 
 if __name__ == "__main__":
 
-    app.run(host="0.0.0.0", port=5000)
+    app.run(
+        host="0.0.0.0",
+        port=5000
+    )
